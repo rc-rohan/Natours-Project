@@ -1,10 +1,24 @@
 const fs = require('fs');
 
-
-
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 );
+
+exports.checkID = (req, res, next, val) => {
+  console.log(`Checking the validity for ID->${val}`);
+  if (req.params.id * 1 > tours.length) {
+    /* we add here return statement as we want to terminate here the request and
+     don't go to next() middleware in the stack and as that will run and that will also
+     send the request headers and thus there will be error as we can send only one
+     request headers */
+    return res.status(404).json({
+      status: 'Fail',
+      message: 'Invalid ID',
+    });
+  }
+  //if there is valid call with valid ID
+  next();
+};
 
 exports.getAllTours = (req, res) => {
   res.status(200).json({
@@ -18,15 +32,8 @@ exports.getAllTours = (req, res) => {
 };
 
 exports.getTour = (req, res) => {
-
-  const id = req.params.id * 1; //Converting an string to number by multiplying strign to number
-
-  if (id > tours.length) {
-    return res.status(404).json({ status: 'Fail', message: 'Invalid ID' });
-  }
-
+  const id =  req.params.id*1;
   const tour = tours.find((el) => el.id === id);
-
   //using jSend data specification where we define the status code with every reponse
   res.status(200).json({
     status: 'success',
@@ -59,12 +66,6 @@ exports.createTour = (req, res) => {
 };
 
 exports.updateTour = (req, res) => {
-  if (req.params.id * 1 > tours.length) {
-    res.send(404).json({
-      status: 'Fail',
-      message: 'Invalid ID',
-    });
-  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -74,13 +75,6 @@ exports.updateTour = (req, res) => {
 };
 
 exports.deleteTour = (req, res) => {
-  if (req.params.id * 1 > tours.length) {
-    res.send(404),
-      json({
-        status: 'Fail',
-        message: 'Invalid ID',
-      });
-  }
   //status code 204 means no content  and the data we sent is null
   res.send(204).json({
     status: 'success',

@@ -3,7 +3,6 @@ const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes')
 const userRouter = require('./routes/userRoutes')
 
-
 const app = express();
 
 //Adding the middleware for the post method to work
@@ -12,7 +11,6 @@ const app = express();
   Middleware is just an function that can modify the incoming request data
   So here the express.json() helps to add the data coming to the body of the request
 */
-
 app.use(morgan('dev'));
 
 app.use(express.json());
@@ -35,10 +33,6 @@ app.use((req, res, next) => {
 app.post('/', (res, req) => {
   res.send('You can post to this endpoint');
 });
-
-
-
-
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
