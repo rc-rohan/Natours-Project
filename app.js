@@ -29,11 +29,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// creating an post request
-app.post('/', (res, req) => {
-  res.send('You can post to this endpoint');
-});
-
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
 

@@ -20,6 +20,16 @@ exports.checkID = (req, res, next, val) => {
   next();
 };
 
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    return res.status(400).json({
+      status: 'invalid request',
+      message: 'Missing Name or Price ',
+    });
+  }
+  next();
+};
+
 exports.getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -32,7 +42,7 @@ exports.getAllTours = (req, res) => {
 };
 
 exports.getTour = (req, res) => {
-  const id =  req.params.id*1;
+  const id = req.params.id * 1;
   const tour = tours.find((el) => el.id === id);
   //using jSend data specification where we define the status code with every reponse
   res.status(200).json({
@@ -44,7 +54,7 @@ exports.getTour = (req, res) => {
 };
 
 exports.createTour = (req, res) => {
-  const newId = tours[tours.length() - 1].id + 1;
+  const newId = tours[tours.length - 1].id + 1;
   const newTour = { id: newId, ...req.body };
 
   console.log(newTour);
