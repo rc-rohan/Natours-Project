@@ -1,70 +1,102 @@
 // const fs = require('fs');
-const Tour = require('../Models/tourModel')
+const Tour = require('../Models/tourModel');
 
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 // );
 
+exports.getAllTours = async (req, res) => {
+  try {
+    const tours = await Tour.find();
 
-
-exports.getAllTours = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    requestedAt: req.requestTime,
-    // results: tours.length,
-    // data: {
-    //   tours: tours,
-    // },
-  });
+    res.status(200).json({
+      status: 'success',
+      requestedAt: req.requestTime,
+      results: tours.length,
+      data: {
+        tours: tours,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'failed',
+      message: 'invalid Request',
+    });
+  }
 };
 
-exports.getTour = (req, res) => {
-  const id = req.params.id * 1;
-  // const tour = tours.find((el) => el.id === id);
-  //using jSend data specification where we define the status code with every reponse
-  res.status(200).json({
-    status: 'success',
-    // data: {
-    //   tour: tour,
-    // },
-  });
+exports.getTour = async (req, res) => {
+  try {
+    const tour = await Tour.findById(req.params.id);
+    //findByID(req.param.id) === findOne({_id:req.param.id});
+
+    //using jSend data specification where we define the status code with every reponse
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour: tour,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'failed',
+      message: 'Ivalid request ID',
+    });
+  }
 };
 
-exports.createTour = (req, res) => {
-  // const newId = tours[tours.length - 1].id + 1;
-  // const newTour = { id: newId, ...req.body };
+exports.createTour = async (req, res) => {
+  try {
+    const newTour = await Tour.create(req.body);
 
-  // console.log(newTour);
-
-  // tours.push(newTour);
-  // fs.writeFile(
-  //   `${__dirname}/dev-data/data/tours-simple.json`,
-  //   JSON.stringify(tours),
-  //   (err) => {
-  //     //Status Code 201 stands for created new
-  //     res.status(201).json({
-  //       status: 'success',
-  //       data: {
-  //         tour: newTour,
-  //       },
-  //     });
-  //   }
-  // );
+    res.status(201).json({
+      status: 'success',
+      data: {
+        tour: newTour,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'failed',
+      message: 'Invalid data sent',
+    });
+  }
 };
 
-exports.updateTour = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: 'Updated tour',
-    },
-  });
+exports.updateTour = async (req, res) => {
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      //we write new to true so that the updated document is the one that will be retured
+      new: true,
+      runValidators: true, //this will run the validators again on updated data
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'failed',
+      message: error,
+    });
+  }
 };
 
-exports.deleteTour = (req, res) => {
-  //status code 204 means no content  and the data we sent is null
-  res.send(204).json({
-    status: 'success',
-    data: null,
-  });
+exports.deleteTour = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+    //status code 204 means no content  and the data we sent is null
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'failed',
+      messge: 'Ivalid data',
+    });
+  }
 };

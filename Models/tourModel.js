@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const tourSchema = mongoose.Schema({
   name: {
     type: String,
-    reuired: [true, 'Error: Tour name not specified'],
+    required: [true, 'Error: Tour name not specified'],
     unique: true,
   },
   rating: { type: Number, default: 4.5 },
