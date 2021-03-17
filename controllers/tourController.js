@@ -34,7 +34,14 @@ exports.getAllTours = async (req, res) => {
       query = query.sort(sortBy)
     }
 
-    
+    //3.) FIELD LIMITING: There are situations when the user wants only the specfic amount of data and we should reduce the bandwidth consumed by the request
+
+    if(req.query.fields){
+      const fields = req.query.fields.split(",").join(" ");
+      query = query.select(fields);//include the fields in the response
+    }else{
+      query = query.select("-__v")// "-" :to exculde the fields from the response
+    }
 
     //the above code can be written as Tour
     // const query = Tour.find()
