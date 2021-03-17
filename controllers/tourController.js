@@ -1,10 +1,6 @@
-// const fs = require('fs');
 const { query } = require('express');
 const Tour = require('../Models/tourModel');
-
-// const tours = JSON.parse(
-//   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-// );
+const APIFetaures = require('../util/apiFeatures');
 
 exports.getAllTours = async (req, res) => {
   try {
@@ -63,7 +59,18 @@ exports.getAllTours = async (req, res) => {
 
     // *EXECUTE QUERY
     //as further on we will be sorting the above query or doing some task on above query so instead of awaiting for again and again we will await here at the end
+
     const tours = await query;
+
+    //For using for class based approach the above entire functions an be re_written as
+    // const features = new APIFetaures(Tour.find(), req.query)
+    //   .filter()
+    //   .sort()
+    //   .limitFields()
+    //   .paginate();
+
+    // const tours = await features.query
+
 
     //SEND RESPONSE
     res.status(200).json({
