@@ -18,16 +18,12 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 
 // User defined middlewre function
-app.use((req, res, next) => {
-  console.log('Hello From the middleware');
-  //next() func help in going to the next function or the next stage of middleware in the reuest cycle
-  next();
-});
+
 /*
    The sequence of the middleware matters a lot if we declare the middleware after the routes HTTP methods then the middleware will not be considered while calling those routes
  */
 app.use((req, res, next) => {
-  req.requestTime = new Date().toISOString(); //toISOString function converts the tme to string
+  req.requestTime = new Date().toISOString(); //toISOString function converts the time to string
   next();
 });
 

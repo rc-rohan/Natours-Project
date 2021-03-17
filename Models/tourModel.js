@@ -9,7 +9,7 @@ const tourSchema = mongoose.Schema({
   },
   duration: {
     type: Number,
-    required: [true, 'Error : Atour must have duration'],
+    required: [true, 'Error : A tour must have duration'],
   },
   maxGroupSize: {
     type: Number,
