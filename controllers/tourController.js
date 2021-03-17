@@ -11,22 +11,30 @@ exports.getAllTours = async (req, res) => {
     console.log(req.query);
 
     //BUILD QUERY
-    // 1. FILTERING
+    // 1A. FILTERING
     const queryObj = { ...req.query };
     const excludefileds = ['page', 'sort', 'limit', 'fields'];
     excludefileds.forEach((el) => delete queryObj[el]); //delete the elemtns if present
 
-    // 2.) ADVANCE FILTERING
+    // 1B.) ADVANCE FILTERING
     let queryString = JSON.stringify(queryObj);
     //writing the regular expression for replacing the string values
     queryString = queryString.replace(
       /\b(gte|gt|lte|lt)\b/g,
       (match) => `$${match}`
     );
-
     console.log(JSON.parse(queryString));
 
-    const query = Tour.find(JSON.parse(queryString));
+    let query = Tour.find(JSON.parse(queryString));
+
+    //MODIFYING THE QUERY
+    //2): SORTING
+    if(req.query.sort){
+      const sortBy = req.query.sort.split(",").join(" ");
+      query = query.sort(sortBy)
+    }
+
+    
 
     //the above code can be written as Tour
     // const query = Tour.find()
