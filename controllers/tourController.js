@@ -15,6 +15,12 @@ exports.getAllTours = async (req, res) => {
     const queryObj = { ...req.query };
     const excludefileds = ['page', 'sort', 'limit', 'fields'];
     excludefileds.forEach((el) => delete queryObj[el]); //delete the elemtns if present
+    //the above code can be written as Tour
+    // const query = Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
 
     // 1B.) ADVANCE FILTERING
     let queryString = JSON.stringify(queryObj);
@@ -29,29 +35,33 @@ exports.getAllTours = async (req, res) => {
 
     //MODIFYING THE QUERY
     //2): SORTING
-    if(req.query.sort){
-      const sortBy = req.query.sort.split(",").join(" ");
-      query = query.sort(sortBy)
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
     }
 
     //3.) FIELD LIMITING: There are situations when the user wants only the specfic amount of data and we should reduce the bandwidth consumed by the request
 
-    if(req.query.fields){
-      const fields = req.query.fields.split(",").join(" ");
-      query = query.select(fields);//include the fields in the response
-    }else{
-      query = query.select("-__v")// "-" :to exculde the fields from the response
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields); //include the fields in the response
+    } else {
+      query = query.select('-__v'); // "-" :to exculde the fields from the response
     }
 
-    //the above code can be written as Tour
-    // const query = Tour.find()
-    //   .where('duration')
-    //   .equals(5)
-    //   .where('difficulty')
-    //   .equals('easy');
+    //4.) PAGINATION: eg page=10&limit=20;
+    const page = req.query.page * 1 || 1; //multiplying with 1 to convert string to number
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments(); //returns number of doucments
+
+      if (skip >= numTours) throw new Error('this page doesn;t exist');
+    }
 
     // *EXECUTE QUERY
-
     //as further on we will be sorting the above query or doing some task on above query so instead of awaiting for again and again we will await here at the end
     const tours = await query;
 
@@ -67,7 +77,7 @@ exports.getAllTours = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       status: 'failed',
-      message: 'invalid Request',
+      message: error,
     });
   }
 };
