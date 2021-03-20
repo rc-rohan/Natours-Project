@@ -71,7 +71,6 @@ exports.getAllTours = async (req, res) => {
 
     // const tours = await features.query
 
-
     //SEND RESPONSE
     res.status(200).json({
       status: 'success',
@@ -162,6 +161,95 @@ exports.deleteTour = async (req, res) => {
     res.status(404).json({
       status: 'failed',
       messge: 'Ivalid data',
+    });
+  }
+};
+
+exports.getTourStats = async (req, res) => {
+  try {
+    //in aggregation query we basically define the query in the
+    const stats = await Tour.aggregate([
+      {
+        //match element is basically used for mathcing the element
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        //group is used for the grouping of the required data to be reflected as the output
+        $group: {
+          _id: { $toUpper: '$difficulty' },
+          numTours: { $sum: 1 },
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+      {
+        $sort: { avgPrice: 1 },
+      },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats: stats,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'failed',
+      message: error,
+    });
+  }
+};
+
+exports.getMonthlyPlan = async (req, res) => {
+  try {
+    const year = req.params.year * 1;
+
+    const plan = await Tour.aggregate([
+      {
+        //unwind is used basically to decontruct the array field from the input document to output one document for each element of the array that basically what we require is to get one tour for each of the dates present in the array.
+        $unwind: '$startDates',
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$startDates' },
+          numToursStart: { $sum: 1 },
+          tours:{$push:'$name'}
+        },
+      },
+      {
+        $addFields:{month:'$_id'}
+      },
+      {
+        $project:{
+          _id:0//this shows that the ID no longer shows up if we write there 1 then it will show up
+        }
+      },
+      {
+        $sort:{numToursStart:-1}
+      }
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        plan: plan,
+      },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: 'failed',
+      message: error,
     });
   }
 };

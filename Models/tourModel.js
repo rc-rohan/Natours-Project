@@ -19,7 +19,7 @@ const tourSchema = mongoose.Schema({
     type: String,
     required: [true, 'Error:Agroup must have a difficulty leve'],
   },
-  ratingAverage: {
+  ratingsAverage: {
     type: Number,
     default: 4.5,
   },
@@ -51,7 +51,7 @@ const tourSchema = mongoose.Schema({
     default: Date.now(),
     select: false,//will never be sent in any of the request
   },
-  startDate: [Date],
+  startDates: [Date],
 });
 
 module.exports = mongoose.model('Tour', tourSchema);
