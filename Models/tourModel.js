@@ -55,6 +55,10 @@ const tourSchema = mongoose.Schema(
       select: false, //will never be sent in any of the request
     },
     startDates: [Date],
+    secretTour:{
+      type:Boolean,
+      default:false
+    }
   },
   {
     //here we are making the virtuals to be present in the output whenever the request is send as JSON or in the Object form
@@ -81,5 +85,16 @@ tourSchema.pre('save', function (next) {
 //   next();
 // });
 
+//QUERY Middleware:
+//  tourSchema.pre('find',function(next){
+  tourSchema.pre('/^find/',function(next){// /^find/ means all the string that starts with find
+  //"this" keyword here points tot he query not to the document as here we are processing the query
+
+  this.find({secretTour:{$ne:true}})
+
+  next();
+ })
+
+ 
 
 module.exports = mongoose.model('Tour', tourSchema);
