@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const validator = require('validator')
 
 const tourSchema = mongoose.Schema(
   {
@@ -8,6 +9,15 @@ const tourSchema = mongoose.Schema(
       required: [true, 'Error: Tour name not specified'],
       unique: true,
       trim: true,
+      maxlength: [
+        40,
+        'Tour name must have name less than or equal to 40 characters',
+      ],
+      minlength: [
+        10,
+        'Tour name must have name less than or equal to 10 characters',
+      ],
+      // validate:[validator.isAlpha,"tour name must only contain characters"]
     },
     slug: String,
     duration: {
@@ -21,10 +31,16 @@ const tourSchema = mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'Error:Agroup must have a difficulty leve'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: 'Difficulty is either easy, medium or difficult',
+      },
     },
     ratingsAverage: {
       type: Number,
       default: 4.5,
+      min: [1, "Rating shouldn't be less than 1.0"],
+      max: [5, "Ratings shoudln't be greater than 5.0"],
     },
     ratingsQuantity: {
       type: Number,
@@ -34,7 +50,17 @@ const tourSchema = mongoose.Schema(
       type: Number,
       required: [true, 'Error: Price must be specified for tour'],
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      validate: {
+        //this function will not run upon update query
+        validator: function (value) {
+          //this here points to current doc on NEW document creation
+          return value < this.price; //100<200
+        },
+        message:"Error: The discount price is more than normal price"
+      },
+    },
     summary: {
       type: String,
       trim: true,
@@ -101,7 +127,6 @@ tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   console.log(this.pipeline());
   //this.pipeline() consists of all the function that we pass in the aggregate query
-
 
   next();
 });
