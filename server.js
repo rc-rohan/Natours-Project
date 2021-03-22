@@ -1,4 +1,4 @@
-/*
+ /*
   Here we create all the server connection parts
 */
 const mongoose = require('mongoose');
