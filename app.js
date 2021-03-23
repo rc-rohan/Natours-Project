@@ -2,6 +2,8 @@ const express = require('express');
 const morgan = require('morgan');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const AppError = require('./util/appError');
+const globalErrorHanlder = require('./controllers/errorControllers')
 
 const app = express();
 
@@ -30,4 +32,29 @@ app.use((req, res, next) => {
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/tours', tourRouter);
 
+//error handlign for wrong URL or that doesn;t exists
+app.all('*', (req, res, next) => {
+  //METHOD 1
+  // res.status(404).json({
+  //   status: 'failed',
+  //   message: `Can't find ${req.originalUrl}`,
+  // });
+  
+  //METHOD 2
+  //creating an error
+  // const err = new Error(`Can't find ${req.originalUrl}`);
+  // err.status = 'fail';
+  // err.statusCode = 404;
+
+  //express assumes whatever we pass in the next function is the error so it directly executes the error handng middleware eventhough if there is something in the middle of the route
+  // next(err);
+
+  //METHOD 3
+  next(new AppError(`Can't find ${req.originalUrl}`, 404));
+});
+
+app.use(globalErrorHanlder);
+
+// specifyig the four argument function in middleware express automatically understands it as the error handling function
+// app.use()
 module.exports = app;

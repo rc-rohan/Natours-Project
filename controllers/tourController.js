@@ -1,10 +1,11 @@
 const { query } = require('express');
 const Tour = require('../Models/tourModel');
 const APIFetaures = require('../util/apiFeatures');
+const AppError = require('../util/appError');
 
 exports.getAllTours = async (req, res) => {
   try {
-    console.log(req.query);
+    // console.log(req.query);
 
     //BUILD QUERY
     // 1A. FILTERING
@@ -25,7 +26,8 @@ exports.getAllTours = async (req, res) => {
       /\b(gte|gt|lte|lt)\b/g,
       (match) => `$${match}`
     );
-    console.log(JSON.parse(queryString));
+
+    //console.log(JSON.parse(queryString));
 
     let query = Tour.find(JSON.parse(queryString));
 
@@ -93,6 +95,12 @@ exports.getTour = async (req, res) => {
     const tour = await Tour.findById(req.params.id);
     //findByID(req.param.id) === findOne({_id:req.param.id});
 
+
+
+    // if (!tour) {
+    //   return new AppError('No tour found with that ID', 404);
+    // }
+
     //using jSend data specification where we define the status code with every reponse
     res.status(200).json({
       status: 'success',
@@ -103,7 +111,7 @@ exports.getTour = async (req, res) => {
   } catch (error) {
     res.status(404).json({
       status: 'failed',
-      message: 'Ivalid request ID',
+      message: 'Invalid request ID',
     });
   }
 };
@@ -224,20 +232,20 @@ exports.getMonthlyPlan = async (req, res) => {
         $group: {
           _id: { $month: '$startDates' },
           numToursStart: { $sum: 1 },
-          tours:{$push:'$name'}
+          tours: { $push: '$name' },
         },
       },
       {
-        $addFields:{month:'$_id'}
+        $addFields: { month: '$_id' },
       },
       {
-        $project:{
-          _id:0//this shows that the ID no longer shows up if we write there 1 then it will show up
-        }
+        $project: {
+          _id: 0, //this shows that the ID no longer shows up if we write there 1 then it will show up
+        },
       },
       {
-        $sort:{numToursStart:-1}
-      }
+        $sort: { numToursStart: -1 },
+      },
     ]);
 
     res.status(200).json({

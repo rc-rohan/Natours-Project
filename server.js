@@ -2,7 +2,7 @@
   Here we create all the server connection parts
 */
 const mongoose = require('mongoose');
-require('dotenv').config({ path: './config.env' });//this is for using the .env file with the process.env
+require('dotenv').config({ path: './config.env' });//this is for loading and using the .env file with the process.env command
 
 const app = require('./app');
 
