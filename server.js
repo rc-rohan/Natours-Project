@@ -1,8 +1,8 @@
- /*
+/*
   Here we create all the server connection parts
 */
 const mongoose = require('mongoose');
-require('dotenv').config({ path: './config.env' });//this is for loading and using the .env file with the process.env command
+require('dotenv').config({ path: './config.env' }); //this is for loading and using the .env file with the process.env command
 
 const app = require('./app');
 
@@ -16,7 +16,8 @@ mongoose
     useCreateIndex: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log('Database connection successful!'));
+  .then(() => console.log('Database connection successful!'))
+  .catch((err) => console.log('Error in connection to DB: ', err));
 
 //Start server
 const port = process.env.port || 8000;
