@@ -6,17 +6,17 @@ const AppError = require('./util/appError');
 const globalErrorHanlder = require('./controllers/errorControllers')
 
 const app = express();
+//We add all the middleware here which will be operating in between 2 tasks
 
-//Adding the middleware for the post method to work
-/*
-  Here in the below line of code "express.json()" is the middleware
-  Middleware is just an function that can modify the incoming request data
-  So here the express.json() helps to add the data coming to the body of the request
-*/
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-
+/*
+  Here in the below line of code "express.json()" is the middleware
+  Middleware is just an function that can modify the incoming request data in JSON format.
+  So here the express.json() helps to add the data coming to the body of the request
+*/
 app.use(express.json());
 
 // User defined middlewre function
@@ -39,7 +39,7 @@ app.all('*', (req, res, next) => {
   //   status: 'failed',
   //   message: `Can't find ${req.originalUrl}`,
   // });
-  
+
   //METHOD 2
   //creating an error
   // const err = new Error(`Can't find ${req.originalUrl}`);

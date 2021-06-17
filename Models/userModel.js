@@ -25,7 +25,8 @@ const userSchema = mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
-    required: [true, 'Please enter confirm fields'],
+
+    required: [true, 'Please enter Confirm Password'],
     validate: {
       //this will work only on CREATE and SAVE query
       validator: function (el) {
@@ -36,20 +37,22 @@ const userSchema = mongoose.Schema({
     },
   },
 });
-//declairing the pre save hook middleware frm mongoose
+//declairing the pre save hook middleware from mongoose
 //it runs between the getting of the data and saving the data to the DB
 userSchema.pre('save', async function (next) {
   //isModified is available from mongoose on all the fields
   if (!this.isModified('password')) {
-    //this function will run if the password was modified
+    //this refer here to the current document ie. users Model
+    //return if the password wasn;t modified.
     return next();
   }
-  //hashing the assword
+  //hashing the password
   this.password = await bcrypt.hash(this.password, 12);
 
-  //deleteing the confirm password
+  //deleteing the confirm password as its not required n DB
   this.passwordConfirm = undefined;
   next();
 });
+
 
 module.exports = mongoose.model('User', userSchema);

@@ -1,3 +1,5 @@
+//Here we have included all the features that we can apply upon any API and modify that
+//like SORT ,FITER, PAGINATE, 
 class APIFetaures {
   constructor(query, queryString) {
     this.query = query;

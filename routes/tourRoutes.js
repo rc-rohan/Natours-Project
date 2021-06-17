@@ -1,3 +1,4 @@
+//ALL THE FUNCTION TO REALTED TO API REQUEST THAT HAPPEN
 const express = require('express');
 const tourController = require('../controllers/tourController');
 
