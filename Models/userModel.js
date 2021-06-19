@@ -22,6 +22,7 @@ const userSchema = mongoose.Schema({
     type: String,
     required: [true, 'Enter Password'],
     minlength: 8,
+    select:false//this will make sure that this value is tored int eh DB and not show o any user
   },
   passwordConfirm: {
     type: String,
@@ -54,5 +55,19 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+//*declaring the instace of the user model
+/*
+  Since this function is the instace so t is available on all the documents of the userModel.
+  here correctPassword is the function name nd the function accepts
+    candidatePassword: the passsword that the user enters nto the body.
+    userPassword::
+    "this" keyword: points to te current document.
+    Since the password we have set to false so
+    "this.password " won't be accessible here
+*/
+userSchema.methods.correctPassword = async function(candidatePassword,userPassword){
+return await bcrypt.compare(candidatePassword,userPassword);
+
+}
 
 module.exports = mongoose.model('User', userSchema);
