@@ -41,7 +41,7 @@ app.all('*', (req, res, next) => {
   // });
 
   //METHOD 2
-  //creating an error
+  //creating an error user defined error created.
   // const err = new Error(`Can't find ${req.originalUrl}`);
   // err.status = 'fail';
   // err.statusCode = 404;
@@ -52,7 +52,7 @@ app.all('*', (req, res, next) => {
   //METHOD 3
   next(new AppError(`Can't find ${req.originalUrl}`, 404));
 });
-
+//this function wil hanlde all the errors if there any error in between of the code.
 app.use(globalErrorHanlder);
 
 // specifyig the four argument function in middleware express automatically understands it as the error handling function

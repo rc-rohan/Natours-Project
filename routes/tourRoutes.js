@@ -1,6 +1,7 @@
 //ALL THE FUNCTION TO REALTED TO API REQUEST THAT HAPPEN
 const express = require('express');
 const tourController = require('../controllers/tourController');
+const authController = require("../controllers/authController");
 
 const router = express.Router();
 /*
@@ -12,7 +13,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(tourController.getAllTours)
+  .get(authController.protectedRoutes,tourController.getAllTours)
   .post(tourController.createTour);
 
 router.route('/tour-stats').get(tourController.getTourStats);

@@ -1,6 +1,7 @@
 /* ALL THE FUNCTIONS RELATED TO AUTHENTICATION OF USER */
 const jwt = require('jsonwebtoken');
 const User = require('../Models/userModel');
+const AppError = require('../util/appError');
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -38,27 +39,19 @@ exports.singin = async (req, res, next) => {
     const { email, password } = req.body;
     // 1.Check if Email and passwords exits
     if (!email || !password) {
-      //!some error handling bugs here
-      res.status(401).json({
-        status: 'Failed',
-        message: 'Please Fill the Email and Password Fields.',
-      });
-      return next();
+      return next(new AppError('Please fill both fileds', 401));
     }
     // 2/Check if user exits and password is correct
     const user = await User.findOne({ email }).select('+password');
 
     if (!user || !(await user.correctPassword(password, user.password))) {
-      //!some error handling bugs here
-      res.status(401).json({
-        status: 'Failed',
-        message: 'Provide the valid Email and Password.',
-      });
-      return next();
+      return next(
+        new AppError("User doen't exits check password and email", 401)
+      );
     }
 
     //3. Send the JWT to the client
-    const token = signToken(user._id);
+    const token = signTovcvcken(user._id);
 
     res.status(200).json({
       status: 'success',
@@ -66,9 +59,40 @@ exports.singin = async (req, res, next) => {
       token,
     });
   } catch (error) {
+    //instead of writing this code again and again we can use the app error class.
+    // res.status(404).json({
+    //   status: 'failed',
+    //   message: 'authentication falied' + error,
+    // });
+
+    return next(new AppError('Atuthentication Failed',401));
+
+  }
+};
+
+// authentication for the protected routes
+exports.protectedRoutes = async (req, res, next) => {
+  try {
+    //1. Getting th tokken from the user and check if it exists
+    let token;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      //authrization start with the Bearer keyword
+      token = req.headers.authorization.split(' ')[1];
+    }
+    console.log(token);
+    if (!token) {
+      return next(new AppError('you are not legged in', 401));
+    }
+    //2. Varification of token
+
+    next();
+  } catch (error) {
     res.status(404).json({
       status: 'failed',
-      message: 'authentication falied',
+      message: 'user not authorised for accessing this route',
     });
   }
 };
