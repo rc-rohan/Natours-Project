@@ -22,7 +22,7 @@ const userSchema = mongoose.Schema({
     type: String,
     required: [true, 'Enter Password'],
     minlength: 8,
-    select:false//this will make sure that this value is tored int eh DB and not show o any user
+    select: false, //this will make sure that this value is tored int eh DB and not show o any user
   },
   passwordConfirm: {
     type: String,
@@ -37,6 +37,7 @@ const userSchema = mongoose.Schema({
       message: 'Confirm Password does not match with Password',
     },
   },
+  passwordChangedAt: Date,
 });
 //declairing the pre save hook middleware from mongoose
 //it runs between the getting of the data and saving the data to the DB
@@ -65,9 +66,24 @@ userSchema.pre('save', async function (next) {
     Since the password we have set to false so
     "this.password " won't be accessible here
 */
-userSchema.methods.correctPassword = async function(candidatePassword,userPassword){
-return await bcrypt.compare(candidatePassword,userPassword);
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
 
-}
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000,10);
+
+    // console.log(this.passwordChangedAt, JWTTimestamp);
+    return JWTTimestamp<changedTimestamp;
+  }
+
+
+  //FALSE means not changed the password
+  return false;
+};
 
 module.exports = mongoose.model('User', userSchema);

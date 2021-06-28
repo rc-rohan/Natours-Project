@@ -1,4 +1,7 @@
 /* ALL THE FUNCTIONS RELATED TO AUTHENTICATION OF USER */
+
+//util is the node.js inbuilt package and we sue here promisify function from there.
+const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('../Models/userModel');
 const AppError = require('../util/appError');
@@ -8,6 +11,7 @@ const signToken = (id) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
+//SIGN UP Code
 exports.signup = async (req, res, next) => {
   try {
     const newUser = await User.create({
@@ -34,6 +38,7 @@ exports.signup = async (req, res, next) => {
   }
 };
 
+//SIGN IN CODE
 exports.singin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -65,8 +70,7 @@ exports.singin = async (req, res, next) => {
     //   message: 'authentication falied' + error,
     // });
 
-    return next(new AppError('Atuthentication Failed',401));
-
+    return next(new AppError('Atuthentication Failed', 401));
   }
 };
 
@@ -79,15 +83,43 @@ exports.protectedRoutes = async (req, res, next) => {
       req.headers.authorization &&
       req.headers.authorization.startsWith('Bearer')
     ) {
-      //authrization start with the Bearer keyword
+      //authorization start with the "Bearer" keyword
       token = req.headers.authorization.split(' ')[1];
     }
-    console.log(token);
     if (!token) {
       return next(new AppError('you are not legged in', 401));
     }
-    //2. Varification of token
+    //2. Verification of token
 
+    //here we will verify the token sent from the client and then allow him to proceed forward.
+    // verfication is done using the "SECRET_KEY" and "token".
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    // console.log(decoded);
+
+    //3. Checking if  user still exists
+
+    /* In case user logged in and then deleted the account and then trying to access the
+      private routes or someone else got the access to the token
+    */
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return next(
+        new AppError('The user belonging to this token no longer exists.', 401)
+      );
+    }
+
+    // 4. Check if the user changed the password after the token was issued.
+
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      //if the password was changed.
+      //we can also return an error or we can simply genrate new token and then send to the user.
+      return next(
+        new AppError('User recently changed password. Please login again', 401)
+      );
+    }
+
+    //if all the above steps are verified successfully then allow the user to the protected routes.
+    req.user = currentUser;
     next();
   } catch (error) {
     res.status(404).json({
