@@ -1,7 +1,7 @@
 //ALL THE FUNCTION TO REALTED TO API REQUEST THAT HAPPEN
 const express = require('express');
 const tourController = require('../controllers/tourController');
-const authController = require("../controllers/authController");
+const authController = require('../controllers/authController');
 
 const router = express.Router();
 /*
@@ -13,7 +13,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(authController.protectedRoutes,tourController.getAllTours)
+  .get(authController.protectedRoute, tourController.getAllTours)
   .post(tourController.createTour);
 
 router.route('/tour-stats').get(tourController.getTourStats);
@@ -22,6 +22,15 @@ router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+  .delete(
+    authController.protectedRoute,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.deleteTour
+  );
+/*here in the delete route we add the protected access that if the useer is logged in
+  then only he can delete the tour
+  and also we add the restricTo() function that declare that the admin can only delete the
+  items.
+*/
 
 module.exports = router;

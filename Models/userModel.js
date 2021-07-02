@@ -18,6 +18,12 @@ const userSchema = mongoose.Schema({
     type: String, //stores the location/path of the image in he file system
     // required: [true, 'Error: user p is required'],
   },
+  role:{
+    type:String,
+    enum:['user','guide','lead-guide','admin'],//user defined values
+    default:"user",
+    // required: [true,"role of the user should be defined"]
+  },
   password: {
     type: String,
     required: [true, 'Enter Password'],

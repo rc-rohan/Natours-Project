@@ -19,9 +19,11 @@ exports.signup = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
+      role:req.body.role,
     });
 
     const token = signToken(newUser._id);
+    console.log(newUser);
     res.status(201).json({
       status: 'success',
       token,
@@ -56,7 +58,7 @@ exports.singin = async (req, res, next) => {
     }
 
     //3. Send the JWT to the client
-    const token = signTovcvcken(user._id);
+    const token = signToken(user._id);
 
     res.status(200).json({
       status: 'success',
@@ -75,7 +77,7 @@ exports.singin = async (req, res, next) => {
 };
 
 // authentication for the protected routes
-exports.protectedRoutes = async (req, res, next) => {
+exports.protectedRoute = async (req, res, next) => {
   try {
     //1. Getting th tokken from the user and check if it exists
     let token;
@@ -128,3 +130,24 @@ exports.protectedRoutes = async (req, res, next) => {
     });
   }
 };
+
+/* Since a middleware cannot have the arguments in the function
+  so here we will create the closure which says that a function always has access to its
+  parent function argument.
+*/
+exports.restrictTo = (...roles)=>{
+  console.log(roles);
+  return (req,res,next) =>{
+    /*
+      since the roles argument is array and it only consits of the ['admin'] so if any other
+      user role wants to access the delete route of tour then that will not be allowed.
+     */
+    /* //! some Errors here    Always this code is only executed.*/
+    if(!roles.includes(req.user.role)){
+      return next(
+        new AppError("You don't have premission to perform this action ",403)
+      )
+    }
+    next();
+  }
+}
