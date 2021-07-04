@@ -19,7 +19,7 @@ exports.signup = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
-      role:req.body.role,
+      role: req.body.role,
     });
 
     const token = signToken(newUser._id);
@@ -135,19 +135,44 @@ exports.protectedRoute = async (req, res, next) => {
   so here we will create the closure which says that a function always has access to its
   parent function argument.
 */
-exports.restrictTo = (...roles)=>{
+exports.restrictTo = (...roles) => {
   console.log(roles);
-  return (req,res,next) =>{
+  return (req, res, next) => {
     /*
       since the roles argument is array and it only consits of the ['admin'] so if any other
       user role wants to access the delete route of tour then that will not be allowed.
      */
     /* //! some Errors here    Always this code is only executed.*/
-    if(!roles.includes(req.user.role)){
+    if (!roles.includes(req.user.role)) {
       return next(
-        new AppError("You don't have premission to perform this action ",403)
-      )
+        new AppError("You don't have premission to perform this action ", 403)
+      );
     }
     next();
+  };
+};
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    // 1. Get the user based upon te posted Email
+    const user = await User.findOne({ email: req.body.email });
+    //verfying if the user exits or not
+    if (!user) {
+      return next(new AppError('There no user with this email ID', 404));
+    }
+    //2 Genrate the random token
+    const resetToken = user.createPasswordRestToken();
+
+    await user.save({ validateBeforeSave: false });
+    /* as after saving the fields it will require the required fields in the model and give the
+      errors of the required fieds
+      So inorder to be safe from there we make the validateBeforeSave to false;
+    */
+    //3 Send it back as an email.
+  } catch (error) {
+    return next(
+      new AppError("Error in resetting the password user doesn't exits msg: "+error,404)
+    );
   }
-}
+};
+exports.resetPassword = (req, res, next) => {};

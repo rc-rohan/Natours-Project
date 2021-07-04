@@ -1,6 +1,8 @@
+const crypto = require('crypto'); //built-in module of Node.js
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const { resetPassword } = require('../controllers/authController');
 
 const userSchema = mongoose.Schema({
   name: {
@@ -18,10 +20,10 @@ const userSchema = mongoose.Schema({
     type: String, //stores the location/path of the image in he file system
     // required: [true, 'Error: user p is required'],
   },
-  role:{
-    type:String,
-    enum:['user','guide','lead-guide','admin'],//user defined values
-    default:"user",
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'], //user defined values
+    default: 'user',
     // required: [true,"role of the user should be defined"]
   },
   password: {
@@ -44,6 +46,8 @@ const userSchema = mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetTokenExpires: Date, //as the password reset token will expire in the 10mins
 });
 //declairing the pre save hook middleware from mongoose
 //it runs between the getting of the data and saving the data to the DB
@@ -81,15 +85,40 @@ userSchema.methods.correctPassword = async function (
 
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
-    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000,10);
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
 
     // console.log(this.passwordChangedAt, JWTTimestamp);
-    return JWTTimestamp<changedTimestamp;
+    return JWTTimestamp < changedTimestamp;
   }
-
-
   //FALSE means not changed the password
   return false;
+};
+
+//create the password reset token for the user who forgot the password
+userSchema.methods.createPasswordRestToken = function () {
+  //we will genrate the random token using the random bytes and this token can be used to
+  //to create new password and only the user will have the access to this token and this behave
+  // as the passsword to the user
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  /* Since if anyone gets access to DB then they will be able to access the token so we will
+  encrypt the token and then store in DB */
+  /* Since we need to store this in DB for ater on comparision when the user uses this token */
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, this.passwordResetToken);
+
+  //setting the reset password expirirng time to 10 min = 600,000 miliseconds
+  this.passwordResetTokenExpires = Date.now() + 10 * 60 * 1000;
+
+  //now we will return the unencrpted token to the user to reset the password
+  return resetToken;
 };
 
 module.exports = mongoose.model('User', userSchema);
