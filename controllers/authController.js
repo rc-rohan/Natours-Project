@@ -5,6 +5,7 @@ const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('../Models/userModel');
 const AppError = require('../util/appError');
+const sendEmail = require('../util/email');
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -152,6 +153,8 @@ exports.restrictTo = (...roles) => {
   };
 };
 
+
+//! uable to get the mails but the response is successful check this once
 exports.forgotPassword = async (req, res, next) => {
   try {
     // 1. Get the user based upon te posted Email
@@ -168,10 +171,50 @@ exports.forgotPassword = async (req, res, next) => {
       errors of the required fieds
       So inorder to be safe from there we make the validateBeforeSave to false;
     */
+
     //3 Send it back as an email.
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+
+    const message = `Forgot your password? Submit a patch request with new password and passwordConfirms to: ${resetURL}.\n If you didn't forgot your password ignore this email! `;
+
+    /* As if there is any internal error in between then we need to set back the token
+      and expire the token genrated so we need to add the extra try catch block for
+      this section below.
+    */
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: ' Your password Token (Token valid for 10min only)',
+        message,
+      });
+
+      res.status(200).json({
+        status: 'success',
+        message: 'Token sent to email!',
+      });
+    } catch (error) {
+      //Here we need to reset the token and reset the pasword expires.
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      //the above 2 statement only modifies the data and doen't saves the data
+      // so inorder to save the data we need .save() and without validation of the data
+      await user.save({ validateBeforeSave: false });
+
+      return next(
+        new AppError(
+          'There was an Error sending the email. Please try again',
+          500
+        )
+      );
+    }
   } catch (error) {
     return next(
-      new AppError("Error in resetting the password user doesn't exits msg: "+error,404)
+      new AppError(
+        "Error in resetting the password user doesn't exits msg: " + error,
+        404
+      )
     );
   }
 };
